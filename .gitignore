@@ -1,0 +1,5 @@
+# removes vsCode files
+.vscode
+
+# removes python environment
+chessai
