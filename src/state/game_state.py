@@ -38,3 +38,6 @@ class GameState:
                     board[i].append(char)
 
         return board
+
+    def get_board_as_string(self):
+        return self.board

@@ -2,7 +2,7 @@ from pettingzoo.classic import chess_v6
 from ..state import game_state
 
 
-def run_sim(state="rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1"):
+def run_sim(state="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq e3 0 1"):
     env = chess_v6.env(render_mode="human")
     env.reset()
 
@@ -10,8 +10,12 @@ def run_sim(state="rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1")
     gameState = game_state.GameState(
         "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1")
 
+    # env.env.env.board.set_fen(state)
+
     for agent in env.agent_iter():
         observation, reward, termination, truncation, info = env.last()
+
+        print(env.env.env.board.fen())
 
         if termination or truncation:
             action = None
