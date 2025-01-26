@@ -41,3 +41,6 @@ class GameState:
 
     def get_board_as_string(self):
         return self.board
+
+    def get_castling(self):
+        return self.castleAvailability
