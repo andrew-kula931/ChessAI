@@ -1,5 +1,5 @@
-import game_state
-import math
+from .game_state import GameState
+
 
 # This file retreives the current board score in relation to the bot (black)
 # It derives its score from the current piece values, the board position,
@@ -9,13 +9,15 @@ import math
 
 
 def get_board_score(state: str):
-    gameState = game_state.GameState(state)
+    gameState = GameState(state)
     currentScore = 0
 
-    print(gameState.get_board())
-
     # Call the three score calculators
-    currentScore += piece_score(gameState.get_board_as_string())
+    currentScore += piece_score(gameState.get_board())
+    currentScore += positional_score(gameState.get_board(),
+                                     gameState.castleAvailability)
+
+    return currentScore
 
 
 # This finds the raw piece score for black
@@ -88,6 +90,10 @@ def positional_score(pieces: list[str], castling_rights: str):
             score += 1
 
     # Moveability
+    for piece in piece_locs:
+        if piece.islower():
+            for x, y in piece:
+                available_moves(pieces, piece, (x, y))
 
     return score
 
@@ -95,8 +101,12 @@ def positional_score(pieces: list[str], castling_rights: str):
 def available_moves(pieces, type: str, position):
     def blank_check(value):
         nonlocal score
+
+        # Returns true if it finds a blank spot and false if not
         if value == '.':
             score += .1
+            return True
+        return False
 
     score = 0
     x, y = position
@@ -111,12 +121,55 @@ def available_moves(pieces, type: str, position):
 
     # Rook movement
     if type == 'r':
-        for dy in range(8):
-            blank_check(pieces[dy][x])
-        for dx in range(8):
-            blank_check(pieces[y][dx])
+        directions = [(0, -1), (0, 1), (1, 0), (-1, 0)]
+        active = [True, True, True, True]
+
+        for i in range(1, 8):
+            for index, (dx, dy) in enumerate(directions):
+                if active[index]:
+                    nx, ny = x + i * dx, y + i * dy
+                    if 0 <= nx < 8 and 0 <= ny < 8:
+                        active[index] = blank_check(pieces[ny][nx])
+
+    # Knight Movement
+    if type == 'n':
+        moves = [(2, 1), (2, -1), (-2, 1), (-2, -1),
+                 (1, 2), (1, -2), (-1, 2), (-1, -2)]
+        for dx, dy in moves:
+            if (0 > x + dx > 8 or 0 > y + dy > 8):
+                continue
+            blank_check(pieces[y + dy][x + dx])
+
+    # Bishop movments
+    if type == 'b':
+        directions = [(-1, -1), (-1, 1), (1, -1), (1, 1)]
+        active = [True, True, True, True]
+
+        for i in range(1, 8):
+            for index, (dx, dy) in enumerate(directions):
+                if active[index]:
+                    nx, ny = x + i * dx, y + i * dy
+                    if 0 <= nx < 8 and 0 <= ny < 8:
+                        active[index] = blank_check(pieces[ny][nx])
+
+    # Queen movements
+    if type == 'q':
+        directions = [(-1, -1), (-1, 0), (-1, 1), (0, 1),
+                      (1, 1), (1, 0), (1, -1), (0, -1)]
+        active = [True, True, True, True, True, True, True, True]
+
+        for i in range(1, 8):
+            for index, (dx, dy) in enumerate(directions):
+                if active[index]:
+                    nx, ny = x + i * dx, y + i * dy
+                    if 0 <= nx < 8 and 0 <= ny < 8:
+                        active[index] = blank_check(pieces[ny][nx])
 
     return score
+
+
+def dangers(pieces):
+    pass
 
 
 '''
@@ -126,10 +179,11 @@ All below if for debugging and should be deleted after completion
 '''
 
 
-state = game_state.GameState(
+state = GameState(
     "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1")
+print(get_board_score(state))
 # positional_score(state.get_board(), 'KQkq')
-print(available_moves(state.get_board(), 'k', (4, 0)))
+# print(available_moves(state.get_board(), 'q', (3, 0)))
 
 test_state = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1"
 # get_board_score(test_state)
