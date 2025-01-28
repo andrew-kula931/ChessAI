@@ -8,7 +8,7 @@ from .game_state import GameState
 # The search is not exhaustive but it gives the bot a value to rate its postion
 
 
-def get_board_score(state: str):
+def get_board_score_max(state: str):
     gameState = GameState(state)
     currentScore = 0
 
@@ -168,8 +168,73 @@ def available_moves(pieces, type: str, position):
     return score
 
 
-def dangers(pieces):
-    pass
+def potential_targeted(target, targeter_type, attack_position, target_position):
+
+    def check_directions(directions, x, y, attacker_position):
+        # Checks all position
+        for dx, dy in directions:
+            if (x + dx, y + dy) == attacker_position:
+                return True
+        return False
+
+    def counter_possibility(type, targeter_type, attacker_position, target_position):
+        x, y = target_position
+
+        # Checks to see if the targetted piece can counter attack
+        if type is 'P':
+            directions = [(-1, -1), (0, -1), (1, -1)]
+
+            return check_directions(directions, x, y, attacker_position)
+
+        if type is 'N':
+            if targeter_type == 'n':
+                return True
+            return False
+
+        if type is 'B':
+            directions = [(-1, -1), (-1, 1), (1, 1), (1, -1)]
+
+            if targeter_type in ['b', 'q']:
+                return True
+            else:
+                return check_directions(directions, x, y, attacker_position)
+
+        if type is 'R':
+            directions = [(-1, 0), (-1, 1), (1, 1), (1, -1)]
+
+            if targeter_type in ['r', 'q']:
+                return True
+            else:
+                return check_directions(directions, x, y, attacker_position)
+
+        if type is 'Q':
+            if targeter_type == 'n':
+                return False
+            else:
+                return True
+
+        if type is 'K':
+            directions = [(-1, -1), (-1, 0), (-1, 1), (0, 1),
+                          (1, 1), (1, 0), (1, -1), (0, -1)]
+
+            return check_directions(directions, x, y, attacker_position)
+
+    # This function checks to see if a piece is threatening another
+    score = 0
+
+    match target:
+        case 'P':
+            score += .1
+        case ['N', 'B']:
+            score += 1
+        case 'R':
+            score += 2
+        case 'Q':
+            score += 5
+        case 'K':
+            score += 10
+
+    return score
 
 
 '''
@@ -181,7 +246,7 @@ All below if for debugging and should be deleted after completion
 
 state = GameState(
     "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1")
-print(get_board_score(state))
+print(get_board_score_max(state))
 # positional_score(state.get_board(), 'KQkq')
 # print(available_moves(state.get_board(), 'q', (3, 0)))
 
